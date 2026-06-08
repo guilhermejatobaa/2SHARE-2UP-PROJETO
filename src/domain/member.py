@@ -19,7 +19,9 @@ class Member:
         return self._balance
 
     def add_funds(self, amount: Money) -> None:
-        self._balance += amount
+        # Atribuição explícita garante que o novo Value Object seja salvo corretamente
+        self._balance = self._balance + amount
 
     def deduct_funds(self, amount: Money) -> None:
-        self._balance -= amount
+        # Atribuição explícita garante que o novo Value Object seja salvo corretamente
+        self._balance = self._balance - amount

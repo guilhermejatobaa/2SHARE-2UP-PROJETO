@@ -1,6 +1,7 @@
 from src.domain.member import Member
 from src.domain.expense import Expense
 from src.domain.money import Money
+from src.domain.exceptions import MemberNotFoundError
 from typing import Dict, List
 from dataclasses import dataclass
 
@@ -30,7 +31,7 @@ class Group:
 
     def register_expense(self, expense: Expense) -> None:
         if expense.payer.id not in self._members:
-            raise ValueError("O pagador não faz parte deste grupo.")
+            raise MemberNotFoundError("O pagador não faz parte deste grupo.")
 
         split_count = len(expense.split_among)
         split_amount_cents = expense.amount.amount_cents // split_count

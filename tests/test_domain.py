@@ -2,19 +2,26 @@ import pytest
 from src.domain.money import Money
 from src.domain.member import Member
 from src.domain.expense import Expense
-from src.domain.group import Group
-from src.domain.group import Settlement
+from src.domain.group import Group, Settlement
+from src.domain.exceptions import (
+    CurrencyMismatchError,
+    InvalidAmountError,
+    MemberNotFoundError
+)
+
 
 def test_money_immutability_and_equality():
-    m1 = Money(1000) # R$ 10,00
+    m1 = Money(1000)  # R$ 10,00
     m2 = Money(1000)
     m3 = Money(500)
 
     assert m1 == m2
     assert m1 != m3
 
-    with pytest.raises(ValueError):
+    # Deve lançar CurrencyMismatchError ao tentar somar moedas diferentes
+    with pytest.raises(CurrencyMismatchError):
         m1 + Money(1000, "USD")
+
 
 def test_member_balance_encapsulation():
     member = Member("1", "Guilherme")
@@ -22,6 +29,7 @@ def test_member_balance_encapsulation():
 
     member.add_funds(Money(5000))
     assert member.balance == Money(5000)
+
 
 def test_group_expense_split():
     group = Group("g1", "Viagem Praia")
@@ -61,11 +69,6 @@ def test_group_clearing_algorithm():
     # João pagou a bebida: R$ 30,00 para os 3
     group.register_expense(Expense("e2", "Bebida", Money(3000), payer=m2, split_among=[m1, m2, m3]))
 
-    # Saldos internos esperados:
-    # Guilherme gastou 90, mas consumiu 40 (30 da carne + 10 da bebida). Saldo: +50
-    # João gastou 30, mas consumiu 40. Saldo: -10
-    # Maria não gastou nada, consumiu 40. Saldo: -40
-
     settlements = group.calculate_settlements()
 
     assert len(settlements) == 2
@@ -74,3 +77,28 @@ def test_group_clearing_algorithm():
     assert any(s.payer.name == "Maria" and s.payee.name == "Guilherme" and s.amount == Money(4000) for s in settlements)
     # João deve 10 para Guilherme
     assert any(s.payer.name == "João" and s.payee.name == "Guilherme" and s.amount == Money(1000) for s in settlements)
+
+
+def test_invalid_expense_amount_should_raise_error():
+    m1 = Member("1", "Guilherme")
+
+    # Deve falhar se o valor da despesa for zero ou negativo
+    with pytest.raises(InvalidAmountError):
+        Expense("e3", "Item Inválido", Money(0), payer=m1, split_among=[m1])
+
+    with pytest.raises(InvalidAmountError):
+        Expense("e4", "Item Negativo", Money(-500), payer=m1, split_among=[m1])
+
+
+def test_payer_not_in_group_should_raise_error():
+    group = Group("g3", "Grupo Teste")
+    m1 = Member("1", "Guilherme")  # Não será adicionado ao grupo
+    m2 = Member("2", "João")
+
+    group.add_member(m2)
+
+    expense = Expense("e5", "Lanche", Money(1500), payer=m1, split_among=[m2])
+
+    # Deve falhar porque Guilherme (payer) não foi registrado no grupo g3
+    with pytest.raises(MemberNotFoundError):
+        group.register_expense(expense)

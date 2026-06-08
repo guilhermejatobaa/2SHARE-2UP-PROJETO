@@ -1,13 +1,14 @@
 from src.domain.money import Money
 from src.domain.member import Member
+from src.domain.exceptions import InvalidAmountError
 from typing import List
 
 class Expense:
     def __init__(self, expense_id: str, description: str, amount: Money, payer: Member, split_among: List[Member]):
         if amount.amount_cents <= 0:
-            raise ValueError("O valor da despesa deve ser positivo.")
+            raise InvalidAmountError("O valor da despesa deve ser positivo.")
         if not split_among:
-            raise ValueError("A despesa deve ser dividida com pelo menos uma pessoa.")
+            raise InvalidAmountError("A despesa deve ser dividida com pelo menos uma pessoa.")
 
         self._id = expense_id
         self._description = description
