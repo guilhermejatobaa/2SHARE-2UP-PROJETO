@@ -1,0 +1,10 @@
+{
+  "curso": "Ciência da computação",
+  "disciplina": "Projeto de programação",
+  "tema_escolhido": "10",
+  "linguagem": "Python",
+  "gerenciador_dependencias": "Pip",
+  "integrantes": [
+    {"nome": "Guilherme Jatobá", "github_username": "guilhermejatobaa"}
+  ]
+}
